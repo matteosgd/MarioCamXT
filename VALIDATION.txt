@@ -1,0 +1,17 @@
+Validation status: PASS for automated binary and emulator checks.
+Date: 2026-10-21
+No live Half-Life or Windows-loader validation was performed.
+
+Six test groups passed:
+- Original DLL sections/metadata preserved except the registration CALL and PE updates.
+- Actual redirected x86 registration and new callbacks at three relocated image bases.
+- Relative left/right turns, eight-turn cycles, wrapping, and pitch/roll preservation.
+- Reset consistency across map changes, game-directory switches and engine-table replacement.
+- Missing/malformed BSP files leave the view unchanged and free loaded data.
+- Bounded BSP entity parsing, nonzero pitch/roll, alternate key ordering and bad offsets.
+Callee-saved registers, stack balance and floating-point control word also checked.
+
+Original DLL SHA256: 34618c2273b38b1f4690c1feef8aa00f32c7f5bf3765f7f0bbb7a303feb60840
+Modified DLL SHA256: f625bf28cd03ed238575cbdb89df911e60e28c4e0301c72c07e4dd643f72ef65
+Injector SHA256 (unchanged): c4d576f87dbb0ce46ad36e7015e67b1666f9aff1e834d5f0f7ef12e102b5dad9
+Python dependencies: {"pefile": "2024.8.26", "pyelftools": "0.33", "unicorn": "2.1.4"}

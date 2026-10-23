@@ -1,0 +1,45 @@
+REPRODUCING THE EXPERIMENTAL DLL
+
+This is a hash-locked extension of the supplied BXT binary, not a rebuild of
+all upstream C++/Rust projects. Only the exact input SHA256 in build_patch.py
+is accepted. Never change that hash to force another DLL through the packer.
+
+On Linux with Python 3, GCC and GNU binutils:
+
+    python3 -m pip install pefile pyelftools unicorn
+    python3 build_patch.py /path/to/original/BunnymodXT.dll ../BunnymodXT.dll
+    MC_ORIGINAL_DLL=/path/to/original/BunnymodXT.dll MC_PATCHED_DLL=../BunnymodXT.dll python3 test_patch.py
+
+The GCC compiler must support -m32 compilation, but no 32-bit C runtime is
+linked. The extension uses only the existing BXT/GoldSrc callbacks. The packer
+generates ELF relocation records, translates absolute references into PE
+HIGHLOW relocations, and retains all original PE relocations. It preserves
+ASLR, DEP, original exports, imports, TLS, resources, and entry point.
+
+Build-specific integration, checked against the original binary:
+- Original DLL source: cbc496b1ba7f6c242a961c33f16d3b5741371dd6 (nov-11-2024).
+- Original registration CALL: RVA 0x000d57c0, bytes e8 1b b6 fe ff.
+- Original CmdFuncs::AddCommand helper: RVA 0x000c0de0; ECX=name, EDX=callback.
+- ClientDLL::pEngfuncs storage: RVA 0x13d91cc0.
+- GetViewAngles and SetViewAngles: engine table indices 34 and 35.
+- Other table indices follow BXT's bundled HLSDK/engine/cdll_int.h, normal HL
+  configuration. This is not a software-renderer, HLSDK10, or Cry of Fear build.
+
+The old bxt_set_angles registration is executed first, then the four new commands
+are registered through the same existing BXT helper. The original command
+handler is preserved. There are no background threads, Windows hooks, new
+imports, key interceptors, or modifications to game files in the DLL itself.
+
+Reset uses COM_LoadFile("maps/c1a0.bsp", 5, &size), validates the BSP30 entity
+lump bounds, parses the first info_player_start and frees the file through
+COM_FreeFile. This follows the normal singleplayer spawn's angles in Valve's
+GetPlayerSpawnSpot and EntSelectSpawnPoint. It is not a live capture or a
+substitute for validating the reference against the user's actual game.
+
+test_patch.py executes the actual appended x86 code with mocked engine callbacks.
+It also checks original-section preservation and executes the redirected
+registration sequence at three simulated load addresses. It does not test the
+Windows loader, engine discovery, real game physics, recoil, save-state updates,
+the Windows menu installer, or long gameplay sessions. Those need an in-game test.
+
+"menu installer" was just a concept of keyboard settings. Discard anything related to menu installer, its no longer available.
